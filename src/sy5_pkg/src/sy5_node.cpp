@@ -1,11 +1,15 @@
 #include <cstdio>
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
-#include "std_msgs/msg/u_int16_multi_array.hpp"
 #include "std_msgs/msg/u_int8_multi_array.hpp"
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include "std_msgs/msg/float32.hpp"
+#include <algorithm>
+#include <cmath>
+#include <iomanip>
+#include <sstream>
 #include <string>
+#include <vector>
 
 using namespace std::chrono_literals;
 
@@ -83,20 +87,37 @@ private:
   }
   void moto_target_angle_callback(const std_msgs::msg::Float64MultiArray::SharedPtr msg)
   {
+    if (msg->data.size() < 5) {
+      RCLCPP_WARN(this->get_logger(),
+                  "moto_target_angle 数据长度 %zu < 5，已丢弃", msg->data.size());
+      return;
+    }
     double moto_angle_c[5];
     for(int i=0;i<5;i++){
       moto_angle[i] = msg->data[i];
       moto_angle_c[i] = std::fabs(moto_angle[i]-last_moto_angle[i]);
     }
     auto max_angle_iter = std::max_element(moto_angle_c, moto_angle_c + 5);
-    float max_angle = *max_angle_iter;
+    double max_angle = *max_angle_iter;
+    // 当所有目标角与上次相同时 max_angle == 0，避免除零；统一退回到基础速度
+    if (max_angle < 1e-6) {
+      for(int i=0;i<5;i++){
+        moto_speed[i] = moto_base_speed;
+      }
+      return;
+    }
     for(int i=0;i<5;i++){
-      moto_speed[i] = static_cast<uint16_t>(moto_angle_c[i]/ max_angle * moto_base_speed + 0.5f);
+      moto_speed[i] = static_cast<uint16_t>(moto_angle_c[i] / max_angle * moto_base_speed + 0.5);
     }
   }
 
   void serial_rx_callback(const std_msgs::msg::UInt8MultiArray::SharedPtr msg)
   {
+    if (msg->data.size() < 2) {
+      RCLCPP_WARN(this->get_logger(),
+                  "serial_rx 包过短(%zu)，已丢弃", msg->data.size());
+      return;
+    }
     switch (msg->data[1])
     {
       case 0x36:
@@ -125,13 +146,13 @@ private:
         if (msg->data.size() == 4) {
           uint8_t motor_id = msg->data[0]-1;
           if(msg->data[2]==0x02){
-            RCLCPP_INFO(this->get_logger(), "电机 %d 运动命令发送成功", motor_id);
+            RCLCPP_DEBUG(this->get_logger(), "电机 %d 运动命令发送成功", motor_id);
             moto_angle_sport_command_flag[motor_id] = 1;
             channel_idle_flag = true;
 
           }
           else if(msg->data[2]==0xE2){
-            RCLCPP_INFO(this->get_logger(), "电机 %d 运动命令发送失败", motor_id);
+            RCLCPP_WARN(this->get_logger(), "电机 %d 运动命令发送失败", motor_id);
             moto_angle_sport_command_flag[motor_id] = 0;
           }
         } else {
@@ -473,7 +494,7 @@ private:
       for(int i = 0; i < 5; i++) {
         ss << i << ":" << std::fixed << std::setprecision(2) << moto_angle_now[i] << "度 ";
       }
-      RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
+      RCLCPP_DEBUG(this->get_logger(), "%s", ss.str().c_str());
     }
   //    }
   rclcpp::Subscription<std_msgs::msg::UInt8MultiArray>::SharedPtr subscription_;

@@ -1,5 +1,8 @@
 #include <cstdio>
 #include "rclcpp/rclcpp.hpp"
+#include <iostream>
+#include <stdexcept>
+#include <string>
 #include <vector>
 #include <cmath>
 #include "std_msgs/msg/float64_multi_array.hpp"
@@ -276,10 +279,10 @@ public:
     Axle[0].location_real = Axle[0].location_axle;
 
     // 打印轴0的坐标
-    RCLCPP_INFO(this->get_logger(), "Axle[0] location_real: x=%.3f, y=%.3f, z=%.3f", 
-                Axle[0].location_real[0][0],
-                Axle[0].location_real[1][0],
-                Axle[0].location_real[2][0]);
+    RCLCPP_DEBUG(this->get_logger(), "Axle[0] location_real: x=%.3f, y=%.3f, z=%.3f",
+                 Axle[0].location_real[0][0],
+                 Axle[0].location_real[1][0],
+                 Axle[0].location_real[2][0]);
 
     // 初始化其他轴
     
@@ -304,11 +307,11 @@ public:
     Axle[i].location_real = Matrix_add(Axle[i-1].location_real, Axle[i].location_axle);
     
     // 打印轴的坐标
-    RCLCPP_INFO(this->get_logger(), "Axle[%d] location_real: x=%.3f, y=%.3f, z=%.3f", 
-                i,
-                Axle[i].location_real[0][0],
-                Axle[i].location_real[1][0],
-                Axle[i].location_real[2][0]);
+    RCLCPP_DEBUG(this->get_logger(), "Axle[%d] location_real: x=%.3f, y=%.3f, z=%.3f",
+                 i,
+                 Axle[i].location_real[0][0],
+                 Axle[i].location_real[1][0],
+                 Axle[i].location_real[2][0]);
     }
     auto location_message = std_msgs::msg::Float64MultiArray();
     location_message.data.resize(3);
@@ -626,8 +629,8 @@ std::vector<std::vector<double>> coordinate_transform(
     // 自身坐标系旋转：X * Y * Z
     std::vector<std::vector<double>> temp = Matrix_multiply(rot_x, rot_y);
     std::vector<std::vector<double>> combined_rot = Matrix_multiply(temp, rot_z);
-    // 将组合变换矩阵应用于所有点
-    return Matrix_multiply(points_3d,rot_z);
+    // 将组合变换矩阵应用于所有点（之前误用 rot_z，丢失了 X/Y 轴旋转）
+    return Matrix_multiply(points_3d, combined_rot);
 }
 
 

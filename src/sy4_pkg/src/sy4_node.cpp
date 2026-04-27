@@ -166,7 +166,7 @@ private:
     if (bytes_written < 0) {
       RCLCPP_ERROR(this->get_logger(), "串口写入错误");
     } else {
-      RCLCPP_INFO(this->get_logger(), "已发送 %zd 字节", bytes_written);
+      RCLCPP_DEBUG(this->get_logger(), "已发送 %zd 字节", bytes_written);
     }                                                    
   }
   void serial_tx_callback(const std_msgs::msg::UInt8MultiArray::SharedPtr msg)
@@ -186,7 +186,7 @@ private:
     if (bytes_written < 0) {
       RCLCPP_ERROR(this->get_logger(), "串口写入错误");
     } else {
-      RCLCPP_INFO(this->get_logger(), "已发送 %zd 字节", bytes_written);
+      RCLCPP_DEBUG(this->get_logger(), "已发送 %zd 字节", bytes_written);
     }
   }
   
@@ -262,7 +262,7 @@ private:
             message.data = packet_buffer_;
             publisher_->publish(message);
             
-            RCLCPP_INFO(this->get_logger(), "接收到完整数据包，长度: %zu", packet_buffer_.size());
+            RCLCPP_DEBUG(this->get_logger(), "接收到完整数据包，长度: %zu", packet_buffer_.size());
             
             // 打印数据包内容（调试用）
             std::string hex_data;

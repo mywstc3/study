@@ -1,19 +1,21 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/u_int8_multi_array.hpp"
-#include <string>
-#include <iostream>
-#include <iomanip>
-#include <vector>
 #include "std_msgs/msg/float64_multi_array.hpp"
+#include <cmath>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
 const double PI = std::acos(-1.0);
 struct Axle
 {
-  double axle_long;
-  double progection_x;
-  double progection_y;
-  double progection_z;
-  double angle_a;
-  double angle_last;
+  double axle_long = 0.0;
+  double progection_x = 0.0;
+  double progection_y = 0.0;
+  double progection_z = 0.0;
+  double angle_a = 0.0;
+  double angle_last = 0.0;
 };
 
 Axle axle[6];
@@ -42,6 +44,11 @@ private:
   
   void location_target_callback(const std_msgs::msg::Float64MultiArray::SharedPtr msg)
   {
+    if (msg->data.size() < 3) {
+      RCLCPP_WARN(this->get_logger(),
+                  "location_target 数据长度 %zu < 3，已丢弃", msg->data.size());
+      return;
+    }
     double target_x = msg->data[0];
     double target_y = msg->data[1];
     double target_z = msg->data[2];
@@ -126,7 +133,7 @@ private:
     for(int i = 0; i < 6; i++) {
       ss << i << ":" << std::fixed << std::setprecision(2) << axle[i].angle_a << "度 ";
     }
-    RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
+    RCLCPP_DEBUG(this->get_logger(), "%s", ss.str().c_str());
     // RCLCPP_INFO(this->get_logger(), "[%.2f, %.2f, %.2f]]", axle_14_long, angle_142/PI*180, axle_24_long);
   }
   
