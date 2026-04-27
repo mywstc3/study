@@ -1,0 +1,5 @@
+tip_position_client:
+  ros__parameters:
+    pc_ip: "172.20.10.3"
+    websocket_port: 9090
+    heartbeat_interval: 5.0

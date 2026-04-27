@@ -1,0 +1,27 @@
+{
+  "configurations": [
+      {
+          "name": "ROS2-Humble",
+          "browse": {
+              "databaseFilename": "${default}",
+              "limitSymbolsToIncludedHeaders": false
+          },
+          "includePath": [
+              // ROS2 Humble 核心头文件路径
+              "/opt/ros/humble/include/**",
+              // 您工作空间中的头文件路径
+              "/home/mywstc3/study/src/**",
+              "/home/mywstc3/study/install/**",
+              // 系统头文件路径
+              "/usr/include/**",
+              "/usr/local/include/**"
+          ],
+          "defines": [],
+          "compilerPath": "/usr/bin/gcc",
+          "cStandard": "c17",
+          "cppStandard": "c++17",  // ROS2 Humble 建议使用 C++17
+          "intelliSenseMode": "linux-gcc-x64"
+      }
+  ],
+  "version": 4
+}

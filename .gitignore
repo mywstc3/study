@@ -1,0 +1,32 @@
+# colcon / ament build artifacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+*.egg
+
+# C/C++ build output
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.exe
+*.out
+
+# Editor / IDE local state
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Local zip snapshots / backups
+*.zip
+*.tar.gz
+*.bak
