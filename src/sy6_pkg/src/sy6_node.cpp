@@ -1,31 +1,29 @@
 #include <cstdio>
 #include "rclcpp/rclcpp.hpp"
+#include <cmath>
 #include <iostream>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <cmath>
 #include "std_msgs/msg/float64_multi_array.hpp"
 
 const double PI = std::acos(-1.0);
-struct axle
+struct AxleState
 {
   std::vector<std::vector<double>> coordinate_system_change;
   std::vector<std::vector<double>> coordinate_follow_change;
   std::vector<std::vector<double>> location_real;
   std::vector<std::vector<double>> location_axle;
-  double axle_long;
-  double location_deviation_z;
-  double location_deviation_y;
-  double location_deviation_x;
-  double angle_a;
-  double angle_c;
-  double angle_init;
-  double spin_derection;
+  double axle_long = 0.0;
+  double location_deviation_z = 0.0;
+  double location_deviation_y = 0.0;
+  double location_deviation_x = 0.0;
+  double angle_a = 0.0;
+  double angle_c = 0.0;
+  double angle_init = 0.0;
+  double spin_direction = 1.0;
 };
-
-std::vector<axle> Axle(6);
-std::vector<double> moto_angle_now;
 
 class MatrixNode : public rclcpp::Node
 {
@@ -36,7 +34,7 @@ public:
     moto_angle_subscription_ = this->create_subscription<std_msgs::msg::Float64MultiArray>("all_moto_angle_now", 10, std::bind(&MatrixNode::moto_angle_callback, this, std::placeholders::_1));
     location_publisher_ = this->create_publisher<std_msgs::msg::Float64MultiArray>("location_now", 10);
     RCLCPP_INFO(this->get_logger(), "矩阵节点已启动");
-    // moto_angle_now ={180.0,125.24,60.24,0.0,115.01};
+    // motor_angle_now_ ={180.0,125.24,60.24,0.0,115.01};
     axle_init();
     // test_matrix_multiply();
     // test_matrix_inverse();
@@ -170,153 +168,153 @@ public:
   {
     // 初始化每个轴的向量
     for (int i = 0; i < 6; i++) {
-      Axle[i].location_axle = std::vector<std::vector<double>>(3, std::vector<double>(1, 0.0));
-      Axle[i].location_real = std::vector<std::vector<double>>(3, std::vector<double>(1, 0.0));
+      axles_[i].location_axle = std::vector<std::vector<double>>(3, std::vector<double>(1, 0.0));
+      axles_[i].location_real = std::vector<std::vector<double>>(3, std::vector<double>(1, 0.0));
     }
 
     // 轴1初始化
-    Axle[0].coordinate_system_change = {{1.0,0.0,0.0},
+    axles_[0].coordinate_system_change = {{1.0,0.0,0.0},
                                         {0.0,1.0,0.0},
                                         {0.0,0.0,1.0}};
-    Axle[0].axle_long = 0.0;
-    Axle[0].location_deviation_z = 130.5;
-    Axle[0].location_deviation_y = 0.0;
-    Axle[0].location_deviation_x = 0.0;
-    Axle[0].angle_init = 0.0;
-    Axle[0].spin_derection = 1.0;
+    axles_[0].axle_long = 0.0;
+    axles_[0].location_deviation_z = 130.5;
+    axles_[0].location_deviation_y = 0.0;
+    axles_[0].location_deviation_x = 0.0;
+    axles_[0].angle_init = 0.0;
+    axles_[0].spin_direction = 1.0;
 
     // 轴2初始化
-    Axle[1].coordinate_system_change = {{0.0,1.0,0.0},
+    axles_[1].coordinate_system_change = {{0.0,1.0,0.0},
                                         {-1.0,0.0,0.0},
                                         {0.0,0.0,1.0}};
-    Axle[1].axle_long = 46.84;
-    Axle[1].location_deviation_z = 40;
-    Axle[1].location_deviation_y = 0.0;
-    Axle[1].location_deviation_x = 46.84;
-    Axle[1].angle_init = 270.0;
-    Axle[1].spin_derection = 1.0;
+    axles_[1].axle_long = 46.84;
+    axles_[1].location_deviation_z = 40;
+    axles_[1].location_deviation_y = 0.0;
+    axles_[1].location_deviation_x = 46.84;
+    axles_[1].angle_init = 270.0;
+    axles_[1].spin_direction = 1.0;
 
     // 轴3初始化
-    // Axle[2].coordinate_system_change = {{1.0,0.0,0.0},
+    // axles_[2].coordinate_system_change = {{1.0,0.0,0.0},
     //                                     {0.0,0.0,1.0},
     //                                     {0.0,-1.0,0.0}};
-    // Axle[2].coordinate_system_change = {{0.0,-1.0,0.0},
+    // axles_[2].coordinate_system_change = {{0.0,-1.0,0.0},
     //                                     {0.0,0.0,1.0},
     //                                     {-1.0,0.0,0.0}};
-    Axle[2].coordinate_system_change = {{0.0,0.0,-1.0},
+    axles_[2].coordinate_system_change = {{0.0,0.0,-1.0},
                                         {1.0,0.0,0.0},
                                         {0.0,-1.0,0.0}}; 
-    Axle[2].axle_long = 180.0;
-    Axle[2].location_deviation_z = 4.0;
-    Axle[2].location_deviation_y = 0.0;
-    Axle[2].location_deviation_x = 180.0;
-    Axle[2].angle_init = 0.0;
-    Axle[2].spin_derection = 1.0;
+    axles_[2].axle_long = 180.0;
+    axles_[2].location_deviation_z = 4.0;
+    axles_[2].location_deviation_y = 0.0;
+    axles_[2].location_deviation_x = 180.0;
+    axles_[2].angle_init = 0.0;
+    axles_[2].spin_direction = 1.0;
     
     // 轴4初始化
-    // Axle[3].coordinate_system_change = {{0.0,1.0,0.0},
+    // axles_[3].coordinate_system_change = {{0.0,1.0,0.0},
     //                                     {0.0,0.0,1.0},
     //                                     {1.0,0.0,0.0}};
-    Axle[3].coordinate_system_change = {{0.0,1.0,0.0},
+    axles_[3].coordinate_system_change = {{0.0,1.0,0.0},
                                         {-1.0,0.0,0.0},
                                         {0.0,0.0,1.0}};
 
-    Axle[3].axle_long = 168.0;
-    Axle[3].location_deviation_z = 35.5;
-    Axle[3].location_deviation_y = -29.0;
-    Axle[3].location_deviation_x = 168.0;
-    Axle[3].angle_init = 0.0;
-    Axle[3].spin_derection = -1.0;
+    axles_[3].axle_long = 168.0;
+    axles_[3].location_deviation_z = 35.5;
+    axles_[3].location_deviation_y = -29.0;
+    axles_[3].location_deviation_x = 168.0;
+    axles_[3].angle_init = 0.0;
+    axles_[3].spin_direction = -1.0;
           
     // 轴5初始化
-    // Axle[4].coordinate_system_change = {{0.0,0.0,-1.0},
+    // axles_[4].coordinate_system_change = {{0.0,0.0,-1.0},
     //                                     {0.0,1.0,0.0},
     //                                     {1.0,0.0,0.0}};
-    Axle[4].coordinate_system_change = {{1.0,0.0,0.0},
+    axles_[4].coordinate_system_change = {{1.0,0.0,0.0},
                                         {0.0,0.0,-1.0},
                                         {0.0,1.0,0.0}};
 
-    Axle[4].axle_long = 50.5;
-    Axle[4].location_deviation_z = 98.5;
-    Axle[4].location_deviation_y = 50.5;
-    Axle[4].location_deviation_x = 0.0;
-    Axle[4].angle_init = 0.0; 
-    Axle[4].spin_derection = 1.0;
+    axles_[4].axle_long = 50.5;
+    axles_[4].location_deviation_z = 98.5;
+    axles_[4].location_deviation_y = 50.5;
+    axles_[4].location_deviation_x = 0.0;
+    axles_[4].angle_init = 0.0; 
+    axles_[4].spin_direction = 1.0;
           
     // 轴6初始化
-    // Axle[5].coordinate_system_change = {{0.0,-1.0,0.0},
+    // axles_[5].coordinate_system_change = {{0.0,-1.0,0.0},
     //                                     {0.0,0.0,-1.0},
     //                                     {1.0,0.0,0.0}};
-    Axle[5].coordinate_system_change = {{1.0,0.0,0.0},
+    axles_[5].coordinate_system_change = {{1.0,0.0,0.0},
                                         {0.0,0.0,-1.0},
                                         {0.0,1.0,0.0}};
 
-    Axle[5].axle_long = 143.0;
-    Axle[5].location_deviation_z = 43.16;
-    Axle[5].location_deviation_y = 0.0;
-    Axle[5].location_deviation_x = 143.0;
-    Axle[5].angle_init = 0.0; 
-    Axle[5].spin_derection = -1.0;           
+    axles_[5].axle_long = 143.0;
+    axles_[5].location_deviation_z = 43.16;
+    axles_[5].location_deviation_y = 0.0;
+    axles_[5].location_deviation_x = 143.0;
+    axles_[5].angle_init = 0.0; 
+    axles_[5].spin_direction = -1.0;           
 
-    // moto_angle_now ={135.0,0.0,0.0,0.0,0.0,0.0};
+    // motor_angle_now_ ={135.0,0.0,0.0,0.0,0.0,0.0};
     // 检查参数大小
-    if (moto_angle_now.size() < 5) {
+    if (motor_angle_now_.size() < 5) {
       RCLCPP_ERROR(this->get_logger(), "参数'all_moto_angle_now'大小不足，需要至少5个值");
       return;
     }
 
     // 初始化轴0
-    Axle[0].angle_c = 0.0;
-    Axle[0].angle_a = (Axle[0].angle_init + Axle[0].angle_c * Axle[0].spin_derection) / 180 * PI;
+    axles_[0].angle_c = 0.0;
+    axles_[0].angle_a = (axles_[0].angle_init + axles_[0].angle_c * axles_[0].spin_direction) / 180 * PI;
     
     // 设置轴0的位置向量
-    Axle[0].location_axle[0][0] = Axle[0].location_deviation_x;
-    Axle[0].location_axle[1][0] = Axle[0].location_deviation_y;
-    Axle[0].location_axle[2][0] = Axle[0].location_deviation_z;
+    axles_[0].location_axle[0][0] = axles_[0].location_deviation_x;
+    axles_[0].location_axle[1][0] = axles_[0].location_deviation_y;
+    axles_[0].location_axle[2][0] = axles_[0].location_deviation_z;
     
     // 应用坐标变换
-    Axle[0].location_axle = Matrix_multiply(Axle[0].coordinate_system_change, Axle[0].location_axle);
-    Axle[0].location_real = Axle[0].location_axle;
+    axles_[0].location_axle = Matrix_multiply(axles_[0].coordinate_system_change, axles_[0].location_axle);
+    axles_[0].location_real = axles_[0].location_axle;
 
     // 打印轴0的坐标
-    RCLCPP_DEBUG(this->get_logger(), "Axle[0] location_real: x=%.3f, y=%.3f, z=%.3f",
-                 Axle[0].location_real[0][0],
-                 Axle[0].location_real[1][0],
-                 Axle[0].location_real[2][0]);
+    RCLCPP_DEBUG(this->get_logger(), "axles_[0] location_real: x=%.3f, y=%.3f, z=%.3f",
+                 axles_[0].location_real[0][0],
+                 axles_[0].location_real[1][0],
+                 axles_[0].location_real[2][0]);
 
     // 初始化其他轴
     
     for(int i = 1; i < 6; i++) {
-    Axle[i].angle_c = moto_angle_now[i-1];
-    Axle[i].angle_a = (Axle[i].angle_init + Axle[i].angle_c * Axle[i].spin_derection) / 180 * PI;
+    axles_[i].angle_c = motor_angle_now_[i-1];
+    axles_[i].angle_a = (axles_[i].angle_init + axles_[i].angle_c * axles_[i].spin_direction) / 180 * PI;
 
     // 设置轴的位置向量
-    Axle[i].location_axle[0][0] = Axle[i].location_deviation_x;
-    Axle[i].location_axle[1][0] = Axle[i].location_deviation_y;
-    Axle[i].location_axle[2][0] = Axle[i].location_deviation_z;
+    axles_[i].location_axle[0][0] = axles_[i].location_deviation_x;
+    axles_[i].location_axle[1][0] = axles_[i].location_deviation_y;
+    axles_[i].location_axle[2][0] = axles_[i].location_deviation_z;
 
     
-    Axle[i].coordinate_system_change = Matrix_multiply(Axle[i-1].coordinate_system_change, Axle[i].coordinate_system_change);
+    axles_[i].coordinate_system_change = Matrix_multiply(axles_[i-1].coordinate_system_change, axles_[i].coordinate_system_change);
 
-    Axle[i].coordinate_system_change = coordinate_transform(Axle[i].coordinate_system_change,0,0,Axle[i].angle_c,1,1,Axle[i].spin_derection);
+    axles_[i].coordinate_system_change = coordinate_transform(axles_[i].coordinate_system_change,0,0,axles_[i].angle_c,1,1,axles_[i].spin_direction);
     
     // 应用坐标变换
-    Axle[i].location_axle = Matrix_multiply(Axle[i].coordinate_system_change, Axle[i].location_axle);
+    axles_[i].location_axle = Matrix_multiply(axles_[i].coordinate_system_change, axles_[i].location_axle);
     
     // 计算实际位置
-    Axle[i].location_real = Matrix_add(Axle[i-1].location_real, Axle[i].location_axle);
+    axles_[i].location_real = Matrix_add(axles_[i-1].location_real, axles_[i].location_axle);
     
     // 打印轴的坐标
-    RCLCPP_DEBUG(this->get_logger(), "Axle[%d] location_real: x=%.3f, y=%.3f, z=%.3f",
+    RCLCPP_DEBUG(this->get_logger(), "axles_[%d] location_real: x=%.3f, y=%.3f, z=%.3f",
                  i,
-                 Axle[i].location_real[0][0],
-                 Axle[i].location_real[1][0],
-                 Axle[i].location_real[2][0]);
+                 axles_[i].location_real[0][0],
+                 axles_[i].location_real[1][0],
+                 axles_[i].location_real[2][0]);
     }
     auto location_message = std_msgs::msg::Float64MultiArray();
     location_message.data.resize(3);
     for(int j=0 ;j<3 ;j++){
-        location_message.data[j] = Axle[5].location_real[j][0];
+        location_message.data[j] = axles_[5].location_real[j][0];
     }
     location_publisher_->publish(location_message);
   }
@@ -325,11 +323,12 @@ public:
 private:
   void moto_angle_callback(const std_msgs::msg::Float64MultiArray::SharedPtr msg)
   {
-    moto_angle_now = msg->data;
-    if (moto_angle_now.size() < 5) {
+    if (msg->data.size() < 5) {
       RCLCPP_ERROR(this->get_logger(), "接收到的'all_moto_angle_now'数据大小不足，需要至少5个值");
       return;
     }
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    motor_angle_now_ = msg->data;
     axle_init();
   }
  /**
@@ -676,9 +675,12 @@ std::vector<std::vector<double>> coordinate_transform(
     }
     return C;
   }
+
+  std::vector<AxleState> axles_{std::vector<AxleState>(6)};
+  std::vector<double> motor_angle_now_;
+  std::mutex state_mutex_;
   rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr moto_angle_subscription_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr location_publisher_;
-  
 };
 
 int main(int argc, char ** argv)
