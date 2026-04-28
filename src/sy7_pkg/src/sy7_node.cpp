@@ -29,7 +29,8 @@ struct Axle
 class Location_Resolve_Node : public rclcpp::Node
 {
 public:
-  Location_Resolve_Node() : Node("sy7_node")
+  Location_Resolve_Node()
+  : Node("sy7_node")
   {
     // 第 4 关节（axle index 3）目前由几何法约束为常量；这里暴露成参数，
     // 用户后续可以用 `ros2 param set /sy7_node axle3_target_angle <deg>` 动态调整，
@@ -55,8 +56,9 @@ private:
   void location_target_callback(const std_msgs::msg::Float64MultiArray::SharedPtr msg)
   {
     if (msg->data.size() < 3) {
-      RCLCPP_WARN(this->get_logger(),
-                  "location_target 数据长度 %zu < 3，已丢弃", msg->data.size());
+      RCLCPP_WARN(
+        this->get_logger(),
+        "location_target 数据长度 %zu < 3，已丢弃", msg->data.size());
       return;
     }
     const double target_x = msg->data[0];
@@ -79,9 +81,11 @@ private:
   {
     for (int i = 0; i < 5; i++) {
       if (axles_[i].angle_a > 180 || axles_[i].angle_a < 0 ||
-          std::isnan(axles_[i].angle_a)) {
-        RCLCPP_ERROR(this->get_logger(),
-                     "电机 %d 角度超出范围: %.2f", i, axles_[i].angle_a);
+        std::isnan(axles_[i].angle_a))
+      {
+        RCLCPP_ERROR(
+          this->get_logger(),
+          "电机 %d 角度超出范围: %.2f", i, axles_[i].angle_a);
         return false;
       }
     }
@@ -132,7 +136,7 @@ private:
       axles_[4].projection_z - axles_[1].projection_z, axles_[4].projection_x);
     const double angle_214 = std::acos(
       (axle_14_long * axle_14_long + axles_[2].axle_long * axles_[2].axle_long -
-       axle_24_long * axle_24_long) /
+      axle_24_long * axle_24_long) /
       (2 * axle_14_long * axles_[2].axle_long));
 
     // 第 4 关节角度（轴 3）：取 ROS 参数，默认 0。
@@ -141,7 +145,7 @@ private:
 
     const double angle_124 = std::acos(
       (axles_[2].axle_long * axles_[2].axle_long + axle_24_long * axle_24_long -
-       axle_14_long * axle_14_long) /
+      axle_14_long * axle_14_long) /
       (2 * axles_[2].axle_long * axle_24_long));
     const double angle_423 = std::atan2(axles_[4].axle_long, axles_[3].axle_long);
     axles_[2].angle_a = (angle_124 + angle_423) / PI * 180 - 90;
@@ -149,11 +153,11 @@ private:
     const double angle_243 = std::atan2(axles_[3].axle_long, axles_[4].axle_long);
     const double angle_142 = std::acos(
       (axle_14_long * axle_14_long + axle_24_long * axle_24_long -
-       axles_[2].axle_long * axles_[2].axle_long) /
+      axles_[2].axle_long * axles_[2].axle_long) /
       (2 * axle_14_long * axle_24_long));
     const double angle_145 = std::acos(
       (axle_14_long * axle_14_long + axles_[5].axle_long * axles_[5].axle_long -
-       axle_15_long * axle_15_long) /
+      axle_15_long * axle_15_long) /
       (2 * axle_14_long * axles_[5].axle_long));
     axles_[4].angle_a = 270 - (angle_243 + angle_142 + angle_145) / PI * 180;
 
