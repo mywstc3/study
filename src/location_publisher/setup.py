@@ -14,9 +14,9 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='mywstc3',
-    maintainer_email='mywstc3@todo.todo',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    maintainer_email='a2830189086@qq.com',
+    description='Local CLI publisher for /location_target (target end-effector position).',
+    license='Apache-2.0',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

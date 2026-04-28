@@ -18,7 +18,7 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='mywstc3',
-    maintainer_email='mywstc3@todo.todo',
+    maintainer_email='a2830189086@qq.com',
     description='ROS 2 bridge for tip position communication via Rosbridge',
     license='Apache-2.0',  # 修改为适当的许可证
     tests_require=['pytest'],

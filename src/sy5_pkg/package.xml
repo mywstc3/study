@@ -3,24 +3,21 @@
 <package format="3">
   <name>sy5_pkg</name>
   <version>0.0.0</version>
-  <!-- 修改描述 -->
-  <description>A ROS 2 package for serial communication and motor control.</description>
-  <!-- 修改维护者信息 -->
-  <maintainer email="mywstc3@example.com">mywstc3</maintainer>
-  <!-- 修改许可证 -->
+  <description>5-axis stepper motor and servo control node, plus the Serial.msg interface used between motion logic and the serial driver.</description>
+  <maintainer email="a2830189086@qq.com">mywstc3</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
 
-  <depend>rosidl_default_runtime</depend>
-  <member_of_group>rosidl_interface_packages</member_of_group>
-
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
+  <depend>rosidl_default_runtime</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
+
+  <member_of_group>rosidl_interface_packages</member_of_group>
 
   <export>
     <build_type>ament_cmake</build_type>

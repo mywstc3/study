@@ -1,49 +1,25 @@
-cmake_minimum_required(VERSION 3.8)
-project(test_msg)
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>test_msg</name>
+  <version>0.0.0</version>
+  <description>Custom test message (uint32[] data, uint8[] sizes) and a small smoke-test node.</description>
+  <maintainer email="a2830189086@qq.com">mywstc3</maintainer>
+  <license>Apache-2.0</license>
 
-# Default to C++17
-if(NOT CMAKE极速_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
-endif()
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
 
-# Find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>rosidl_default_runtime</depend>
 
-# Generate interfaces
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/Test.msg"
-  DEPENDENCIES std_msgs
-)
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
-# Add executable
-add_executable(test_node src/test_node.cpp)
+  <member_of_group>rosidl_interface_packages</member_of_group>
 
-# Add dependencies
-ament_target_dependencies(test_node
-  "rclcpp"
-  "std_msgs"
-)
-
-# Add include directories
-target_include_directories(test_node PUBLIC
-  ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp
-)
-
-# Ensure message generation happens before node compilation
-add_dependencies(test_node ${PROJECT_NAME}_generate_interfaces)
-
-# Install targets
-install(TARGETS test_node
-  DESTINATION lib/${PROJECT_NAME}
-)
-
-# Install message files
-install(
-  FILES msg/Test.msg
-  DESTINATION share/${PROJECT_NAME}/msg
-)
-
-ament_package()
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

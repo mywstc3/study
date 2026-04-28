@@ -3,9 +3,9 @@
 <package format="3">
   <name>sy7_pkg</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="mywstc3@todo.todo">mywstc3</maintainer>
-  <license>TODO: License declaration</license>
+  <description>Inverse kinematics node: target end-effector position -> joint angles.</description>
+  <maintainer email="a2830189086@qq.com">mywstc3</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

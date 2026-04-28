@@ -4,8 +4,8 @@
   <name>tip_position_bridge</name>
   <version>0.0.0</version>
   <description>ROS 2 bridge for tip position communication via Rosbridge</description>
-  <maintainer email="mywstc3@todo.todo">mywstc3</maintainer>
-  <license>TODO: License declaration</license>
+  <maintainer email="a2830189086@qq.com">mywstc3</maintainer>
+  <license>Apache-2.0</license>
 
   <depend>rclpy</depend>
   <depend>std_msgs</depend>
